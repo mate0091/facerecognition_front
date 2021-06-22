@@ -1,34 +1,31 @@
-<div style="text-align:center">
-  <h1>
-    Ngx-Webcam Demo
-  </h1>
+<div class="main-container">
+  <div class="login-page">
+    <div class="form">
+      <div class="login">
+        <div class="login-header">
+          <h3>Login</h3>
+          <p>Press the button to log in</p>
+        </div>
+      </div>
+      <div class="login-form">
+        <div class="webcam-container">
+          <webcam [height]="500" [width]="500" [trigger]="triggerObservable" (imageCapture)="handleImage($event)" *ngIf="showWebcam"
+                  [allowCameraSwitch]="allowCameraSwitch" [switchCamera]="nextWebcamObservable"
+                  [videoOptions]="videoOptions"
+                  [imageQuality]="1"
+                  (cameraSwitched)="cameraWasSwitched($event)"
+                  (initError)="handleInitError($event)"
+          ></webcam>
+        </div>
 
-  <div>
-    <webcam [height]="500" [width]="500" [trigger]="triggerObservable" (imageCapture)="handleImage($event)" *ngIf="showWebcam"
-            [allowCameraSwitch]="allowCameraSwitch" [switchCamera]="nextWebcamObservable"
-            [videoOptions]="videoOptions"
-            [imageQuality]="1"
-            (cameraSwitched)="cameraWasSwitched($event)"
-            (initError)="handleInitError($event)"
-    ></webcam>
-    <br/>
-    <button class="actionBtn" (click)="triggerSnapshot();">Take A Snapshot</button>
-    <button class="actionBtn" (click)="toggleWebcam();">Toggle Webcam</button>
-    <br/>
-    <button class="actionBtn" (click)="showNextWebcam(true);" [disabled]="!multipleWebcamsAvailable">Next Webcam</button>
-    <input id="cameraSwitchCheckbox" type="checkbox" [(ngModel)]="allowCameraSwitch"><label for="cameraSwitchCheckbox">Allow Camera Switch</label>
-    <br/>
-    DeviceId: <input id="deviceId" type="text" [(ngModel)]="deviceId" style="width: 500px">
-    <button (click)="showNextWebcam(deviceId);">Activate</button>
+        <input id="usernameId" type="text" placeholder="Username" [(ngModel)]="usernameTextField" style="width: 500px">
+        <button id="loginBtnId" (click)="usernameEntered()">{{instructionText}}</button>
+      </div>
+    </div>
   </div>
-</div>
 
-<div class="snapshot" *ngIf="webcamImage">
-  <h2>Nice one!</h2>
-  <img [src]="webcamImage.imageAsDataUrl"/>
+  <h4 *ngIf="errors.length > 0">Messages:</h4>
+  <ul *ngFor="let error of errors">
+    <li>{{error | json}}</li>
+  </ul>
 </div>
-
-<h4 *ngIf="errors.length > 0">Messages:</h4>
-<ul *ngFor="let error of errors">
-  <li>{{error | json}}</li>
-</ul>

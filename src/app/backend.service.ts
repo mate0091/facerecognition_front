@@ -9,10 +9,20 @@ export class BackendService {
   private backendApi = 'http://127.0.0.1:8000';
   constructor(private http: HttpClient) { }
 
-  public sendPicture(message: string): Observable<any>
+  public sendPicture(message: string, name: string): Observable<any>
   {
-    const headers = new HttpHeaders()
-      .append('Content-type', 'text/binary');
-    return this.http.post<any>(this.backendApi + '/img/', message, {headers});
+    const httpOptions: {headers; observe; } = {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+      }),
+      observe: 'response'
+    };
+
+    const body: {imgbase64; person; } = {
+      imgbase64: message.toString(),
+      person: name
+    };
+
+    return this.http.post<any>(this.backendApi + '/img/', body, httpOptions);
   }
 }

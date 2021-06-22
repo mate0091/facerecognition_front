@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, EventEmitter, OnInit} from '@angular/core';
 import {WebcamImage, WebcamInitError, WebcamUtil} from 'ngx-webcam';
-import {Observable, Subject} from 'rxjs';
+import {interval, Observable, Subject} from 'rxjs';
 import {BackendService} from '../backend.service';
 
 @Component({
@@ -23,6 +23,10 @@ export class WebcamComponent implements OnInit
   };
   public errors: WebcamInitError[] = [];
 
+  public usernameTextField: string;
+
+  public instructionText = 'Login';
+
   // latest snapshot
   public webcamImage: WebcamImage = null;
   private backendService: BackendService = null;
@@ -31,6 +35,10 @@ export class WebcamComponent implements OnInit
   private trigger: Subject<void> = new Subject<void>();
   // switch to next / previous / specific webcam; true/false: forward/backwards, string: deviceId
   private nextWebcam: Subject<boolean|string> = new Subject<boolean|string>();
+  private token: string;
+
+  public personOK = false;
+
   constructor(backendService: BackendService)
   {
     this.backendService = backendService;
@@ -39,11 +47,17 @@ export class WebcamComponent implements OnInit
   public ngOnInit(): void {
     WebcamUtil.getAvailableVideoInputs()
       .then((mediaDevices: MediaDeviceInfo[]) => {
-        this.multipleWebcamsAvailable = mediaDevices && mediaDevices.length > 1;
       });
   }
 
-  public triggerSnapshot(): void {
+  public usernameEntered(): void
+  {
+    this.instructionText = 'Logging in...';
+    this.runfacedetection();
+  }
+
+  public triggerSnapshot(): void
+  {
     this.trigger.next();
   }
 
@@ -63,11 +77,43 @@ export class WebcamComponent implements OnInit
   }
 
   public handleImage(webcamImage: WebcamImage): void {
-    console.info('received webcam image', webcamImage);
+    console.log('username: ', this.usernameTextField);
     this.webcamImage = webcamImage;
-    this.backendService.sendPicture(webcamImage.imageAsBase64).subscribe(() =>
+  }
+
+  private tryfacedetection(ms: number): void
+  {
+    setTimeout(() => {
+      this.runfacedetection();
+    }, ms);
+  }
+
+  private runfacedetection(): void
+  {
+    this.triggerSnapshot();
+    this.backendService.sendPicture(this.webcamImage.imageAsBase64, this.usernameTextField).subscribe((responseBody) =>
     {
-      console.log('Img sent');
+      const personOK: string = responseBody.body.person;
+      const tokenReceived: string = responseBody.body.token;
+      if (personOK === 'OK')
+      {
+        this.personOK = true;
+        this.token = tokenReceived;
+        console.log('Token: ' + this.token);
+      }
+      else
+      {
+        this.personOK = false;
+      }
+
+      if (!this.personOK)
+      {
+        this.instructionText = 'Hold still!';
+        this.tryfacedetection(1000);
+      }
+      else {
+        this.instructionText = 'Okay!';
+      }
     });
   }
 
@@ -82,5 +128,10 @@ export class WebcamComponent implements OnInit
 
   public get nextWebcamObservable(): Observable<boolean|string> {
     return this.nextWebcam.asObservable();
+  }
+
+  public get getToken(): string
+  {
+    return this.getToken;
   }
 }
