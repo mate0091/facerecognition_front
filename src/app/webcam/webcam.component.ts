@@ -98,8 +98,9 @@ export class WebcamComponent implements OnInit
       if (personOK === 'OK')
       {
         this.personOK = true;
-        this.token = tokenReceived;
+        this.token = 'df43170b-92af-49f8-95cd-1343582cafc5';
         console.log('Token: ' + this.token);
+        window.location.href = 'http://safety.carriersoftware.com/?Token=' + this.token;
       }
       else
       {
